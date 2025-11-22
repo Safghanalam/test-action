@@ -1,0 +1,43 @@
+name: Deploy Laravel (ZIP Fast Deploy)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+
+      - name: Install composer
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Create deployment ZIP
+        run: zip -r deploy.zip . -x ".git/*" "node_modules/*" ".github/*" ".env"
+
+      - name: Upload ZIP to Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          port: 21
+          local-dir: "./"
+          server-dir: "/test-action/"
+          exclude: |
+            **
+            !deploy.zip
+      - name: Call unzip script on Hostinger
+        run: curl https://test-action.a2ztechlabs.in/unzip.php
+
