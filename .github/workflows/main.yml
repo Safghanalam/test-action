@@ -20,6 +20,9 @@ jobs:
           extensions: mbstring, bcmath, intl, pdo, mysqli
           tools: composer
 
+      - name: Update Composer Dependencies
+        run: composer update
+        
       - name: Install Composer Dependencies
         run: composer install --no-dev --optimize-autoloader
 
