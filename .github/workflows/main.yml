@@ -19,7 +19,21 @@ jobs:
           php-version: '8.4'
           tools: composer
 
-      - name: Install composer
+      - name: Check if composer files changed
+        id: composer_changed
+        run: |
+          echo "Files changed:"
+          echo "${{ toJson(github.event.head_commit.modified) }}"
+          if echo "${{ toJson(github.event.head_commit.modified) }}" | grep -q "composer.json"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          elif echo "${{ toJson(github.event.head_commit.modified) }}" | grep -q "composer.lock"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install composer (ONLY WHEN NEEDED)
+        if: steps.composer_changed.outputs.changed == 'true'
         run: composer install --no-dev --optimize-autoloader
 
       - name: Create deployment ZIP
